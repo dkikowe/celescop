@@ -1,0 +1,62 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap');
+
+@import 'tailwindcss';
+
+html, body {
+	font-family: 'Inter', sans-serif;
+	background: linear-gradient(180deg, #ffffff 75%, #4982f6 100%) no-repeat
+		center fixed;
+	background-size: cover;
+	height: 100vh;
+}
+
+#root {
+	height: 100%;
+	width: 100%;
+}
+
+.checkbox {
+	appearance: none;
+	-webkit-appearance: none;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 2rem;
+	padding: 0.1rem;
+	border: 1px solid #27448d;
+	background-color: white;
+	border-radius: 0.4rem;
+	width: 20px !important;
+	height: 20px;
+	aspect-ratio: 1/1;
+}
+
+.checkbox::before {
+	content: '✓';
+	transform: scale(0);
+	color: #27448d;
+	font-size: 14px;
+	font-weight: 500;
+}
+
+.checkbox:checked::before {
+	transform: scale(1);
+}
+
+.no-scrollbar {
+	-ms-overflow-style: none;
+	scrollbar-width: none;
+	&::-webkit-scrollbar {
+		display: none;
+	}
+}
+
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+	-webkit-appearance: none;
+	margin: 0;
+}
+
+input[type='number'] {
+	-moz-appearance: textfield;
+}
