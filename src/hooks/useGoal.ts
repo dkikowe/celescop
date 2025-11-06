@@ -103,6 +103,19 @@ export function useUpdateGoal(id: number, cb?: () => void) {
 				formData.append('image', data.image)
 			}
 			formData.append('info', JSON.stringify(dataWithoutImage))
+            try {
+                console.log('[useUpdateGoal] -> PUT /goal/' + id, {
+                    hasImage: Boolean(data.image),
+                    imageName: data.image?.name,
+                    info: {
+                        ...dataWithoutImage,
+                        subGoals: (dataWithoutImage?.subGoals || []).map((s: any) => ({
+                            description: s.description,
+                            deadline: s.deadline,
+                        })),
+                    },
+                })
+            } catch {}
 			const res = await goalService.updateGoal(id, formData)
 			if (res?.status !== 200) throw new Error()
 			return res.data // <--- ВАЖНО!

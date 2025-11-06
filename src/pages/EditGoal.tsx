@@ -38,8 +38,8 @@ interface Form {
   subGoals?: {
     id?: number;
     description: string;
-    deadline: Date;
-    isCompleted: boolean;
+    deadline: string; // YYYY-MM-DD
+    isCompleted?: boolean;
   }[];
   image: File;
   currentGoal?: any;
@@ -64,65 +64,64 @@ export function EditGoal() {
 
   const { data: goal } = useGetGoal(Number(id));
 
-  const { register, handleSubmit, setValue, watch } = useForm<Form>({
+  const { register, handleSubmit, setValue, watch, reset } = useForm<Form>({
     defaultValues: {
-      privacy: goal?.privacy || "PRIVATE",
-      deadline: goal?.deadline || "3_MONTHS",
-      urgencyLevel: goal?.urgencyLevel || "LOW",
-      title: goal?.title || "",
-      specific: goal?.specific || "",
-      measurable: goal?.measurable || "",
-      attainable: goal?.attainable || "",
-      award: goal?.award || "",
-      relevant: goal?.relevant || "",
-      subGoals: goal?.subGoals || [],
+      privacy: "PRIVATE",
+      deadline: "3_MONTHS",
+      urgencyLevel: "LOW",
+      title: "",
+      specific: "",
+      measurable: "",
+      attainable: "",
+      award: "",
+      relevant: "",
+      subGoals: [],
     },
   });
+
+  // Используем попап-компонент для редактирования подзадач
 
   useEffect(() => {
     if (goal) {
       console.log("Goal from backend:", goal);
-      setValue("title", goal.title);
-      setValue("urgencyLevel", goal.urgencyLevel);
-      setValue("specific", goal.specific);
-      setValue("measurable", goal.measurable);
-      setValue("attainable", goal.attainable);
-      setValue("award", goal.award);
-      setValue("relevant", goal.relevant);
-      setValue("privacy", goal.privacy);
-      setValue("deadline", convertDateToDeadline(new Date(goal.deadline)));
-      setValue(
-        "subGoals",
-        goal.subGoals?.map((subGoal: SubGoal) => ({
-          ...subGoal,
-          deadline: subGoal.deadline ? new Date(subGoal.deadline) : new Date(),
-        })) || []
-      );
-      setValue("currentGoal", goal);
+      reset({
+        title: goal.title,
+        urgencyLevel: goal.urgencyLevel,
+        specific: goal.specific,
+        measurable: goal.measurable,
+        attainable: goal.attainable,
+        award: goal.award,
+        description: goal.description,
+        relevant: goal.relevant,
+        privacy: goal.privacy,
+        deadline: convertDateToDeadline(new Date(goal.deadline)),
+        subGoals:
+          (goal.subGoals || []).map((sg: SubGoal) => {
+            const d = new Date(sg.deadline);
+            const pad = (n: number) => (n < 10 ? `0${n}` : `${n}`);
+            return {
+              id: sg.id,
+              description: sg.description,
+              deadline: `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(
+                d.getDate()
+              )}`,
+              isCompleted: sg.isCompleted,
+            };
+          }) || [],
+        currentGoal: goal,
+        image: undefined as any,
+      });
     }
   }, [goal]);
 
-  useEffect(() => {
-    setValue(
-      "description",
-      `${watch("specific")}, ${watch("measurable")}, ${watch(
-        "attainable"
-      )}, ${watch("relevant")}\n\n${
-        watch("award") ? `Награда: ${watch("award")}` : ""
-      }`
-    );
-  }, [
-    watch("specific"),
-    watch("measurable"),
-    watch("attainable"),
-    watch("award"),
-    watch("relevant"),
-  ]);
+  // Убрана автогенерация описания на экране редактирования, чтобы не затирать ручные правки
 
   const { mutate: updateGoal, isPending } = useUpdateGoal(Number(id), () => {
     queryClient.invalidateQueries({ queryKey: ["get goals"] });
     setTimeout(() => navigate("/"), 1000);
   });
+
+  // Мгновенное сохранение подзадач отключено по требованию
 
   return (
     <section className="relative pb-20">
@@ -150,15 +149,27 @@ export function EditGoal() {
             return;
           }
 
+          try {
+            console.log(
+              "[EditGoal] subGoals BEFORE clean (submit):",
+              (dataWithoutCurrentGoal.subGoals || []).map((s: any) => ({
+                description: s.description,
+                deadline: s.deadline,
+              }))
+            );
+          } catch {}
+
           const cleanedData = {
             ...dataWithoutCurrentGoal,
             deadline: dataWithoutCurrentGoal.deadline || "3_MONTHS",
             privacy: dataWithoutCurrentGoal.privacy || "PRIVATE",
             award: dataWithoutCurrentGoal.award,
-            subGoals: dataWithoutCurrentGoal.subGoals?.map((subGoal) => ({
-              description: subGoal.description,
-              deadline: new Date(subGoal.deadline),
-            })),
+            subGoals: (dataWithoutCurrentGoal.subGoals || [])
+              .filter((sg) => sg?.description && sg?.deadline)
+              .map((subGoal) => ({
+                description: subGoal.description,
+                deadline: new Date(subGoal.deadline).toISOString(),
+              })),
           };
           console.log("Cleaned data to send:", cleanedData);
           updateGoal({ data: cleanedData });
@@ -182,6 +193,7 @@ export function EditGoal() {
             register={register}
             watch={watch}
             setValue={setValue}
+            disableAutoGenerate={true}
           />
           <CreateGoalAward register={register} />
           <CreateGoalDeadline setValue={setValue} />
@@ -213,16 +225,32 @@ export function EditGoal() {
               toast.error("Пожалуйста, добавьте хотя бы одну задачу");
               return;
             }
+            try {
+              console.log(
+                "[EditGoal] subGoals BEFORE clean (button):",
+                (dataWithoutCurrentGoal.subGoals || []).map((s: any) => ({
+                  description: s.description,
+                  deadline: s.deadline,
+                }))
+              );
+            } catch {}
+
             const cleanedData = {
               ...dataWithoutCurrentGoal,
               deadline: dataWithoutCurrentGoal.deadline || "3_MONTHS",
               privacy: dataWithoutCurrentGoal.privacy || "PRIVATE",
               award: dataWithoutCurrentGoal.award,
-              subGoals: dataWithoutCurrentGoal.subGoals?.map((subGoal) => ({
-                description: subGoal.description,
-                deadline: new Date(subGoal.deadline),
-              })),
+              subGoals: (dataWithoutCurrentGoal.subGoals || [])
+                .filter((sg) => sg?.description && sg?.deadline)
+                .map((subGoal) => ({
+                  description: subGoal.description,
+                  deadline: new Date(subGoal.deadline).toISOString(),
+                })),
             };
+            console.log(
+              "[EditGoal] Cleaned data to send (submit button):",
+              cleanedData
+            );
             updateGoal({ data: cleanedData });
           })}
         >

@@ -6,9 +6,7 @@ import { authService } from '../services/auth/auth.service'
 export const api = axios.create({
 	baseURL: import.meta.env.VITE_API_URL,
 	withCredentials: true,
-	headers: {
-		'Content-Type': 'application/json',
-	},
+    // Не выставляем Content-Type глобально, чтобы FormData устанавливал boundary автоматически
 })
 
 api.interceptors.request.use(config => {

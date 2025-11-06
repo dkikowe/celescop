@@ -2,15 +2,11 @@ import { api } from '../lib/axios'
 
 class GoalService {
 	async createGoal(formData: FormData) {
-		return await api.post(`/goal/create`, formData, {
-			headers: { 'Content-Type': 'multipart/form-data' },
-		})
+		return await api.post(`/goal/create`, formData)
 	}
 
 	async createGoalFromTemplate(formData: FormData) {
-		return await api.post(`/goal/create-from-template`, formData, {
-			headers: { 'Content-Type': 'multipart/form-data' },
-		})
+		return await api.post(`/goal/create-from-template`, formData)
 	}
 
 	async getGoals() {
@@ -22,9 +18,7 @@ class GoalService {
 	}
 
 	async updateGoal(id: number, formData: FormData) {
-		return await api.put(`/goal/${id}`, formData, {
-			headers: { 'Content-Type': 'multipart/form-data' },
-		})
+		return await api.put(`/goal/${id}`, formData)
 	}
 
 	async completeSubGoal(id: number) {

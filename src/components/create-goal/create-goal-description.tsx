@@ -12,10 +12,12 @@ export function CreateGoalDescription({
   register,
   watch,
   setValue,
+  disableAutoGenerate = false,
 }: {
   register: UseFormRegister<any>;
   watch: UseFormWatch<any>;
   setValue: UseFormSetValue<any>;
+  disableAutoGenerate?: boolean;
 }) {
   const [isLoading, setIsLoading] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
@@ -74,12 +76,13 @@ export function CreateGoalDescription({
 
   // Автогенерация при заполненных SMART полях (с дебаунсом)
   useEffect(() => {
-    if (!smartFilled) return;
+    if (disableAutoGenerate || !smartFilled) return;
     const t = setTimeout(() => {
       handleGenerate();
     }, 600);
     return () => clearTimeout(t);
   }, [
+    disableAutoGenerate,
     smartFilled,
     watch("title"),
     watch("specific"),

@@ -79,7 +79,7 @@ export function CreateGoal() {
       award: data.award ? `Награда: ${data.award}` : undefined,
       subGoals: data.subGoals?.map((subGoal) => ({
         description: subGoal.description,
-        deadline: subGoal.deadline,
+        deadline: new Date(subGoal.deadline as any).toISOString(),
       })),
       source: data.template ? "template" : undefined,
       // Убираем template из данных если он пустой
