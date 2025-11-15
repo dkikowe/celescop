@@ -273,201 +273,195 @@ export function CreateGoalSubGoal({
 
   return (
     <Block title="Перечень задач:">
-      <table className="w-full border-collapse border-t scale-95 border-[#2F51A8]">
-        <tbody className="w-full">
-          {watch("subGoals")?.map((goal: any, index: number) => (
-            <tr key={index} className="border border-[#2F51A8] flex w-full">
-              <td className="border-r aspect-square border-[#2F51A8] py-2 px-4 text-center flex items-center justify-center">
-                {index + 1}
-              </td>
-              <td className="border-r border-[#2F51A8] px-4 w-full py-2 line-clamp-1 flex items-center">
-                {editingIndex === index ? (
-                  <input
-                    type="text"
-                    value={subGoalTemp}
-                    onChange={(e) => {
-                      const v = e.target.value;
-                      setSubGoalTemp(v);
-                      updateEditingSubGoal({ description: v });
-                    }}
-                    onBlur={() => {
-                      if (subGoalTemp.trim()) {
-                        handleUpdateSubGoal();
-                      } else {
-                        handleCloseEditingPopup();
-                      }
-                    }}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") {
-                        e.preventDefault();
-                        if (subGoalTemp.trim()) {
-                          handleUpdateSubGoal();
-                        }
-                      }
-                      if (e.key === "Escape") {
-                        handleCloseEditingPopup();
-                      }
-                    }}
-                    autoFocus
-                    className="w-full outline-none border-b border-[#2F51A8]"
-                  />
-                ) : goal.description.length > 25 ? (
-                  goal.description.slice(0, 25) + "..."
-                ) : (
-                  goal.description
-                )}
-              </td>
-              <td className="px-2 flex items-center w-full">
-                <input
-                  type="date"
-                  value={(() => {
-                    const deadline =
-                      editingIndex === index
-                        ? subGoalDateTemp
-                          ? (() => {
-                              const d = subGoalDateTemp;
-                              const pad = (n: number) =>
-                                n < 10 ? `0${n}` : `${n}`;
-                              return `${d.getFullYear()}-${pad(
-                                d.getMonth() + 1
-                              )}-${pad(d.getDate())}`;
-                            })()
-                          : ""
-                        : goal.deadline
-                        ? typeof goal.deadline === "string"
-                          ? goal.deadline
-                          : (() => {
-                              const d = new Date(goal.deadline);
-                              const pad = (n: number) =>
-                                n < 10 ? `0${n}` : `${n}`;
-                              return `${d.getFullYear()}-${pad(
-                                d.getMonth() + 1
-                              )}-${pad(d.getDate())}`;
-                            })()
-                        : "";
-                    return deadline;
-                  })()}
-                  onChange={(e) => {
-                    if (e.target.value) {
-                      const d = new Date(e.target.value);
-                      const pad = (n: number) => (n < 10 ? `0${n}` : `${n}`);
-                      const deadlineYmd = `${d.getFullYear()}-${pad(
-                        d.getMonth() + 1
-                      )}-${pad(d.getDate())}`;
-
-                      if (editingIndex === index) {
-                        // Если уже в режиме редактирования, обновляем временное состояние
-                        setSubGoalDateTemp(d);
-                        updateEditingSubGoal({ deadlineYmd });
-                      } else {
-                        // Если не в режиме редактирования, сразу обновляем форму
-                        const currentSubGoals = watch("subGoals") || [];
-                        const updatedSubGoals = currentSubGoals.map(
-                          (sg: any, i: number) => {
-                            if (i === index) {
-                              return {
-                                ...sg,
-                                deadline: deadlineYmd,
-                              };
-                            }
-                            return sg;
-                          }
-                        );
-                        setValue("subGoals", updatedSubGoals, {
-                          shouldDirty: true,
-                          shouldTouch: true,
-                        });
-                      }
-                    }
-                  }}
-                  className="border rounded px-2 py-1 text-sm"
-                />
-              </td>
-              <td className="border-l border-[#2F51A8] px-2 py-2 flex flex-col items-center gap-4">
-                <button
-                  type="button"
-                  onClick={() => handleRemoveSubGoal(index)}
-                >
-                  <XIcon size={24} />
-                </button>
-                {editingIndex !== index && (
-                  <button
-                    type="button"
-                    onClick={() => handleEditSubGoal(index)}
-                  >
-                    <EditIcon size={24} />
-                  </button>
-                )}
-              </td>
-            </tr>
-          ))}
-          <tr>
-            <td colSpan={3}>
-              <Popup
-                open={subGoalCreateOpen}
-                contentStyle={{
-                  width: "80%",
-                }}
-                onOpen={() => setSubGoalCreateOpen(true)}
-                onClose={handleCloseSubGoal}
-                position="top left"
-                arrow={false}
-                trigger={
-                  <button
-                    type="button"
-                    className="bg-[#2F51A8] aspect-square px-2 text-white text-xl flex items-center justify-center"
-                  >
-                    +
-                  </button>
-                }
-              >
-                <div className="w-full flex items-center gap-2">
-                  <textarea
-                    value={subGoalTemp}
-                    onChange={(e) => setSubGoalTemp(e.target.value)}
-                    placeholder="Введите задачу"
-                    required
-                    className="w-full outline-none resize-none"
-                  />
-                  <Button
-                    type="button"
-                    onClick={handleAddSubGoal}
-                    className="aspect-square !p-2 rounded-sm"
-                  >
-                    <CheckIcon />
-                  </Button>
-                </div>
-                <div className="mt-3">
-                  Крайний срок
-                  <div className="flex items-center gap-2 mt-2">
+      <div className="w-full overflow-x-auto">
+        <table className="w-full border-collapse border-t border-[#2F51A8] table-fixed min-w-[320px]">
+          <colgroup>
+            <col className="w-12" />
+            <col className="w-auto" />
+            <col className="w-32 sm:w-40" />
+            <col className="w-16 sm:w-20" />
+          </colgroup>
+          <tbody className="w-full">
+            {watch("subGoals")?.map((goal: any, index: number) => (
+              <tr key={index} className="border border-[#2F51A8]">
+                <td className="border-r border-[#2F51A8] py-2 px-2 text-center align-middle text-sm">
+                  {index + 1}
+                </td>
+                <td className="border-r border-[#2F51A8] px-3 py-2 align-middle">
+                  {editingIndex === index ? (
                     <input
                       type="text"
-                      placeholder="ДД:ММ:ГГГГ ЧЧ:ММ"
-                      value={manualDateText}
+                      value={subGoalTemp}
                       onChange={(e) => {
-                        const formatted = formatManualInput(e.target.value);
-                        setManualDateText(formatted);
-                        const parsed = tryParseManual(formatted);
-                        if (parsed) {
-                          setSubGoalDateTemp(parsed);
-                          const pad = (n: number) =>
-                            n < 10 ? `0${n}` : `${n}`;
-                          updateEditingSubGoal({
-                            deadlineYmd: `${parsed.getFullYear()}-${pad(
-                              parsed.getMonth() + 1
-                            )}-${pad(parsed.getDate())}`,
-                          });
+                        const v = e.target.value;
+                        setSubGoalTemp(v);
+                        updateEditingSubGoal({ description: v });
+                      }}
+                      onBlur={() => {
+                        if (subGoalTemp.trim()) {
+                          handleUpdateSubGoal();
+                        } else {
+                          handleCloseEditingPopup();
                         }
                       }}
                       onKeyDown={(e) => {
-                        if (e.key === "Backspace" && manualDateText) {
+                        if (e.key === "Enter") {
                           e.preventDefault();
-                          const digits = manualDateText.replace(/\D/g, "");
-                          const nextDigits = digits.slice(0, -1);
-                          const nextFormatted =
-                            formatDigitsToManual(nextDigits);
-                          setManualDateText(nextFormatted);
-                          const parsed = tryParseManual(nextFormatted);
+                          if (subGoalTemp.trim()) {
+                            handleUpdateSubGoal();
+                          }
+                        }
+                        if (e.key === "Escape") {
+                          handleCloseEditingPopup();
+                        }
+                      }}
+                      autoFocus
+                      className="w-full outline-none border-b border-[#2F51A8] text-sm"
+                    />
+                  ) : (
+                    <div
+                      className="text-sm break-words line-clamp-2"
+                      title={goal.description}
+                    >
+                      {goal.description}
+                    </div>
+                  )}
+                </td>
+                <td className="px-2 py-2 align-middle">
+                  <input
+                    type="date"
+                    value={(() => {
+                      const deadline =
+                        editingIndex === index
+                          ? subGoalDateTemp
+                            ? (() => {
+                                const d = subGoalDateTemp;
+                                const pad = (n: number) =>
+                                  n < 10 ? `0${n}` : `${n}`;
+                                return `${d.getFullYear()}-${pad(
+                                  d.getMonth() + 1
+                                )}-${pad(d.getDate())}`;
+                              })()
+                            : ""
+                          : goal.deadline
+                          ? typeof goal.deadline === "string"
+                            ? goal.deadline
+                            : (() => {
+                                const d = new Date(goal.deadline);
+                                const pad = (n: number) =>
+                                  n < 10 ? `0${n}` : `${n}`;
+                                return `${d.getFullYear()}-${pad(
+                                  d.getMonth() + 1
+                                )}-${pad(d.getDate())}`;
+                              })()
+                          : "";
+                      return deadline;
+                    })()}
+                    onChange={(e) => {
+                      if (e.target.value) {
+                        const d = new Date(e.target.value);
+                        const pad = (n: number) => (n < 10 ? `0${n}` : `${n}`);
+                        const deadlineYmd = `${d.getFullYear()}-${pad(
+                          d.getMonth() + 1
+                        )}-${pad(d.getDate())}`;
+
+                        if (editingIndex === index) {
+                          // Если уже в режиме редактирования, обновляем временное состояние
+                          setSubGoalDateTemp(d);
+                          updateEditingSubGoal({ deadlineYmd });
+                        } else {
+                          // Если не в режиме редактирования, сразу обновляем форму
+                          const currentSubGoals = watch("subGoals") || [];
+                          const updatedSubGoals = currentSubGoals.map(
+                            (sg: any, i: number) => {
+                              if (i === index) {
+                                return {
+                                  ...sg,
+                                  deadline: deadlineYmd,
+                                };
+                              }
+                              return sg;
+                            }
+                          );
+                          setValue("subGoals", updatedSubGoals, {
+                            shouldDirty: true,
+                            shouldTouch: true,
+                          });
+                        }
+                      }
+                    }}
+                    className="border rounded px-1 py-1 text-xs w-full"
+                  />
+                </td>
+                <td className="border-l border-[#2F51A8] px-1 py-2 align-middle">
+                  <div className="flex flex-col items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveSubGoal(index)}
+                      className="hover:opacity-70 transition-opacity"
+                    >
+                      <XIcon size={18} />
+                    </button>
+                    {editingIndex !== index && (
+                      <button
+                        type="button"
+                        onClick={() => handleEditSubGoal(index)}
+                        className="hover:opacity-70 transition-opacity"
+                      >
+                        <EditIcon size={18} />
+                      </button>
+                    )}
+                  </div>
+                </td>
+              </tr>
+            ))}
+            <tr>
+              <td colSpan={3}>
+                <Popup
+                  open={subGoalCreateOpen}
+                  contentStyle={{
+                    width: "80%",
+                  }}
+                  onOpen={() => setSubGoalCreateOpen(true)}
+                  onClose={handleCloseSubGoal}
+                  position="top left"
+                  arrow={false}
+                  trigger={
+                    <button
+                      type="button"
+                      className="bg-[#2F51A8] aspect-square px-2 text-white text-xl flex items-center justify-center"
+                    >
+                      +
+                    </button>
+                  }
+                >
+                  <div className="w-full flex items-center gap-2">
+                    <textarea
+                      value={subGoalTemp}
+                      onChange={(e) => setSubGoalTemp(e.target.value)}
+                      placeholder="Введите задачу"
+                      required
+                      className="w-full outline-none resize-none"
+                    />
+                    <Button
+                      type="button"
+                      onClick={handleAddSubGoal}
+                      className="aspect-square !p-2 rounded-sm"
+                    >
+                      <CheckIcon />
+                    </Button>
+                  </div>
+                  <div className="mt-3">
+                    Крайний срок
+                    <div className="flex items-center gap-2 mt-2">
+                      <input
+                        type="text"
+                        placeholder="ДД:ММ:ГГГГ ЧЧ:ММ"
+                        value={manualDateText}
+                        onChange={(e) => {
+                          const formatted = formatManualInput(e.target.value);
+                          setManualDateText(formatted);
+                          const parsed = tryParseManual(formatted);
                           if (parsed) {
                             setSubGoalDateTemp(parsed);
                             const pad = (n: number) =>
@@ -478,71 +472,92 @@ export function CreateGoalSubGoal({
                               )}-${pad(parsed.getDate())}`,
                             });
                           }
-                        }
-                      }}
-                      className="w-4/5 outline-none resize-none border p-2 rounded-md border-gray-100"
-                    />
-                    <div className="relative w-1/5">
-                      <input
-                        ref={createDateInputRef}
-                        type="datetime-local"
-                        className="absolute inset-0 opacity-0 cursor-pointer z-10"
-                        onChange={(e) => {
-                          if (e.target.value) {
-                            const d = new Date(e.target.value);
-                            setSubGoalDateTemp(d);
-                            setManualDateText(formatDateToManual(d));
-                            updateEditingSubGoal({
-                              deadlineYmd: `${d.getFullYear()}-${(
-                                d.getMonth() + 1
-                              )
-                                .toString()
-                                .padStart(2, "0")}-${d
-                                .getDate()
-                                .toString()
-                                .padStart(2, "0")}`,
-                            });
+                        }}
+                        onKeyDown={(e) => {
+                          if (e.key === "Backspace" && manualDateText) {
+                            e.preventDefault();
+                            const digits = manualDateText.replace(/\D/g, "");
+                            const nextDigits = digits.slice(0, -1);
+                            const nextFormatted =
+                              formatDigitsToManual(nextDigits);
+                            setManualDateText(nextFormatted);
+                            const parsed = tryParseManual(nextFormatted);
+                            if (parsed) {
+                              setSubGoalDateTemp(parsed);
+                              const pad = (n: number) =>
+                                n < 10 ? `0${n}` : `${n}`;
+                              updateEditingSubGoal({
+                                deadlineYmd: `${parsed.getFullYear()}-${pad(
+                                  parsed.getMonth() + 1
+                                )}-${pad(parsed.getDate())}`,
+                              });
+                            }
                           }
                         }}
+                        className="w-4/5 outline-none resize-none border p-2 rounded-md border-gray-100"
                       />
-                      <Button
-                        type="button"
-                        onClick={() => {
-                          const el = createDateInputRef.current;
-                          if (!el) return;
-                          // @ts-ignore
-                          if (typeof el.showPicker === "function")
-                            el.showPicker();
-                          else el.click();
-                        }}
-                        className="!p-2 w-full rounded-md flex items-center justify-center"
-                      >
-                        <Calendar size={18} />
-                      </Button>
+                      <div className="relative w-1/5">
+                        <input
+                          ref={createDateInputRef}
+                          type="datetime-local"
+                          className="absolute inset-0 opacity-0 cursor-pointer z-10"
+                          onChange={(e) => {
+                            if (e.target.value) {
+                              const d = new Date(e.target.value);
+                              setSubGoalDateTemp(d);
+                              setManualDateText(formatDateToManual(d));
+                              updateEditingSubGoal({
+                                deadlineYmd: `${d.getFullYear()}-${(
+                                  d.getMonth() + 1
+                                )
+                                  .toString()
+                                  .padStart(2, "0")}-${d
+                                  .getDate()
+                                  .toString()
+                                  .padStart(2, "0")}`,
+                              });
+                            }
+                          }}
+                        />
+                        <Button
+                          type="button"
+                          onClick={() => {
+                            const el = createDateInputRef.current;
+                            if (!el) return;
+                            // @ts-ignore
+                            if (typeof el.showPicker === "function")
+                              el.showPicker();
+                            else el.click();
+                          }}
+                          className="!p-2 w-full rounded-md flex items-center justify-center"
+                        >
+                          <Calendar size={18} />
+                        </Button>
+                      </div>
                     </div>
                   </div>
+                </Popup>
+                <div className="flex justify-between items-center mt-3 px-2">
+                  {isGenerating && (
+                    <span className="text-sm text-gray-500">Генерация...</span>
+                  )}
+                  <Button
+                    type="button"
+                    onClick={handleGenerateTasks}
+                    disabled={isGenerating}
+                  >
+                    {isGenerating
+                      ? "Генерация..."
+                      : hasGenerated
+                      ? "Сгенерировать ещё раз"
+                      : "Сгенерировать задачи"}
+                  </Button>
                 </div>
-              </Popup>
-              <div className="flex justify-between items-center mt-3 px-2">
-                {isGenerating && (
-                  <span className="text-sm text-gray-500">Генерация...</span>
-                )}
-                <Button
-                  type="button"
-                  onClick={handleGenerateTasks}
-                  disabled={isGenerating}
-                >
-                  {isGenerating
-                    ? "Генерация..."
-                    : hasGenerated
-                    ? "Сгенерировать ещё раз"
-                    : "Сгенерировать задачи"}
-                </Button>
-              </div>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
     </Block>
   );
 }

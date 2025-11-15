@@ -54,7 +54,7 @@ export function HomePage() {
         <div className="flex items-center gap-4 mt-5">
           <Link to="/chat" className="flex flex-col gap-1 items-center">
             <MessageCircle color="#27448D" size={36} />
-            <span className="text-xs">Чат</span>
+            <span className="text-xs">Чат с ИИ</span>
           </Link>
           <Link to="/settings" className="flex flex-col gap-1 items-center">
             <SettingsIcon color="#27448D" size={36} />
