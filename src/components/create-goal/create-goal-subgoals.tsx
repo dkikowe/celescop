@@ -274,7 +274,7 @@ export function CreateGoalSubGoal({
   return (
     <Block title="Перечень задач:">
       <div className="w-full overflow-x-auto">
-        <table className="w-full border-collapse border-t border-[#2F51A8] table-fixed min-w-[320px]">
+        <table className="w-full border-collapse border-t border-[#2F51A8] table-fixed min-w-[300px]">
           <colgroup>
             <col className="w-12" />
             <col className="w-auto" />
