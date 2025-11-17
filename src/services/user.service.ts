@@ -14,9 +14,16 @@ class UserService {
 	}
 
 	async editUserPhoto(id: string, formData: FormData) {
-		return await api.put<IUser>(`/user/edit-photo/${id}`, formData, {
-			headers: { 'Content-Type': 'multipart/form-data' },
-		})
+		// НЕ устанавливаем Content-Type вручную - браузер сам установит multipart/form-data с boundary
+		console.log(`📤 PUT /user/edit-photo/${id}`)
+		for (const [key, value] of formData.entries()) {
+			if (value instanceof File) {
+				console.log(`  ${key}:`, { name: value.name, size: value.size, type: value.type })
+			} else {
+				console.log(`  ${key}:`, value)
+			}
+		}
+		return await api.put<IUser>(`/user/edit-photo/${id}`, formData)
 	}
 
 	async getUser(id: string) {

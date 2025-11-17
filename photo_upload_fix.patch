@@ -1,0 +1,147 @@
+diff --git a/src/lib/axios.ts b/src/lib/axios.ts
+index 77b58d9..6578a9f 100644
+--- a/src/lib/axios.ts
++++ b/src/lib/axios.ts
+@@ -38,19 +38,48 @@ api.interceptors.response.use(
+ 			}
+ 		}
+ 
++		// Подробное логирование для отладки
++		console.group('🔴 API Error')
++		console.error('URL:', error?.config?.url)
++		console.error('Method:', error?.config?.method)
++		console.error('Status:', error?.response?.status)
++		console.error('Response data:', error?.response?.data)
++		console.error('Full error:', error)
++		console.groupEnd()
++
+ 		// Показываем сообщение об ошибке
+ 		if (error?.response) {
+ 			const status = error.response.status
+ 			if (status !== 401 && status !== 403) {
+-				const message = error.response.data?.message || 'Неизвестная ошибка'
+-				toast.error(message)
++				// Пытаемся извлечь сообщение из разных возможных форматов ответа
++				let message = 'Неизвестная ошибка'
++				
++				if (typeof error.response.data === 'string') {
++					message = error.response.data
++				} else if (error.response.data?.message) {
++					message = error.response.data.message
++				} else if (error.response.data?.error) {
++					message = error.response.data.error
++				} else if (Array.isArray(error.response.data?.errors)) {
++					message = error.response.data.errors.join(', ')
++				}
++				
++				// Добавляем статус код для дополнительной информации
++				const displayMessage = status >= 500 
++					? `Ошибка сервера (${status}): ${message}`
++					: message
++				
++				console.error('Showing toast:', displayMessage)
++				toast.error(displayMessage)
+ 			}
+ 		} else if (error?.request) {
+ 			// Ошибка сети - запрос был отправлен, но ответа не получено
++			console.error('Network error - no response received')
+ 			toast.error('Ошибка сети. Проверьте интернет-соединение.')
+ 		} else {
+ 			// Ошибка при настройке запроса
+-			toast.error('Случилась ошибка. Пожалуйста, перезагрузите страницу.')
++			console.error('Request setup error:', error?.message)
++			toast.error('Ошибка при отправке запроса: ' + (error?.message || 'неизвестная ошибка'))
+ 		}
+ 
+ 		// Важно: возвращаем rejected Promise, чтобы ошибка попала в catch блоки
+diff --git a/src/services/goal.service.ts b/src/services/goal.service.ts
+index c1fdb19..28b8cf5 100644
+--- a/src/services/goal.service.ts
++++ b/src/services/goal.service.ts
+@@ -2,10 +2,27 @@ import { api } from '../lib/axios'
+ 
+ class GoalService {
+ 	async createGoal(formData: FormData) {
++		console.log('📤 POST /goal/create')
++		// Логируем содержимое FormData
++		for (const [key, value] of formData.entries()) {
++			if (value instanceof File) {
++				console.log(`  ${key}:`, { name: value.name, size: value.size, type: value.type })
++			} else {
++				console.log(`  ${key}:`, value)
++			}
++		}
+ 		return await api.post(`/goal/create`, formData)
+ 	}
+ 
+ 	async createGoalFromTemplate(formData: FormData) {
++		console.log('📤 POST /goal/create-from-template')
++		for (const [key, value] of formData.entries()) {
++			if (value instanceof File) {
++				console.log(`  ${key}:`, { name: value.name, size: value.size, type: value.type })
++			} else {
++				console.log(`  ${key}:`, value)
++			}
++		}
+ 		return await api.post(`/goal/create-from-template`, formData)
+ 	}
+ 
+@@ -18,6 +35,14 @@ class GoalService {
+ 	}
+ 
+ 	async updateGoal(id: number, formData: FormData) {
++		console.log(`📤 PUT /goal/${id}`)
++		for (const [key, value] of formData.entries()) {
++			if (value instanceof File) {
++				console.log(`  ${key}:`, { name: value.name, size: value.size, type: value.type })
++			} else {
++				console.log(`  ${key}:`, value)
++			}
++		}
+ 		return await api.put(`/goal/${id}`, formData)
+ 	}
+ 
+@@ -30,9 +55,16 @@ class GoalService {
+ 	}
+ 
+ 	async completeGoal(id: number, formData: FormData) {
+-		return await api.post(`/goal/${id}/complete`, formData, {
+-			headers: { 'Content-Type': 'multipart/form-data' },
+-		})
++		// НЕ устанавливаем Content-Type вручную - браузер сам установит multipart/form-data с boundary
++		console.log(`📤 POST /goal/${id}/complete`)
++		for (const [key, value] of formData.entries()) {
++			if (value instanceof File) {
++				console.log(`  ${key}:`, { name: value.name, size: value.size, type: value.type })
++			} else {
++				console.log(`  ${key}:`, value)
++			}
++		}
++		return await api.post(`/goal/${id}/complete`, formData)
+ 	}
+ }
+ 
+diff --git a/src/services/user.service.ts b/src/services/user.service.ts
+index 6c5968e..72e87ef 100644
+--- a/src/services/user.service.ts
++++ b/src/services/user.service.ts
+@@ -14,9 +14,16 @@ class UserService {
+ 	}
+ 
+ 	async editUserPhoto(id: string, formData: FormData) {
+-		return await api.put<IUser>(`/user/edit-photo/${id}`, formData, {
+-			headers: { 'Content-Type': 'multipart/form-data' },
+-		})
++		// НЕ устанавливаем Content-Type вручную - браузер сам установит multipart/form-data с boundary
++		console.log(`📤 PUT /user/edit-photo/${id}`)
++		for (const [key, value] of formData.entries()) {
++			if (value instanceof File) {
++				console.log(`  ${key}:`, { name: value.name, size: value.size, type: value.type })
++			} else {
++				console.log(`  ${key}:`, value)
++			}
++		}
++		return await api.put<IUser>(`/user/edit-photo/${id}`, formData)
+ 	}
+ 
+ 	async getUser(id: string) {

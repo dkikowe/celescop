@@ -2,10 +2,27 @@ import { api } from '../lib/axios'
 
 class GoalService {
 	async createGoal(formData: FormData) {
+		console.log('📤 POST /goal/create')
+		// Логируем содержимое FormData
+		for (const [key, value] of formData.entries()) {
+			if (value instanceof File) {
+				console.log(`  ${key}:`, { name: value.name, size: value.size, type: value.type })
+			} else {
+				console.log(`  ${key}:`, value)
+			}
+		}
 		return await api.post(`/goal/create`, formData)
 	}
 
 	async createGoalFromTemplate(formData: FormData) {
+		console.log('📤 POST /goal/create-from-template')
+		for (const [key, value] of formData.entries()) {
+			if (value instanceof File) {
+				console.log(`  ${key}:`, { name: value.name, size: value.size, type: value.type })
+			} else {
+				console.log(`  ${key}:`, value)
+			}
+		}
 		return await api.post(`/goal/create-from-template`, formData)
 	}
 
@@ -18,6 +35,14 @@ class GoalService {
 	}
 
 	async updateGoal(id: number, formData: FormData) {
+		console.log(`📤 PUT /goal/${id}`)
+		for (const [key, value] of formData.entries()) {
+			if (value instanceof File) {
+				console.log(`  ${key}:`, { name: value.name, size: value.size, type: value.type })
+			} else {
+				console.log(`  ${key}:`, value)
+			}
+		}
 		return await api.put(`/goal/${id}`, formData)
 	}
 
@@ -30,9 +55,16 @@ class GoalService {
 	}
 
 	async completeGoal(id: number, formData: FormData) {
-		return await api.post(`/goal/${id}/complete`, formData, {
-			headers: { 'Content-Type': 'multipart/form-data' },
-		})
+		// НЕ устанавливаем Content-Type вручную - браузер сам установит multipart/form-data с boundary
+		console.log(`📤 POST /goal/${id}/complete`)
+		for (const [key, value] of formData.entries()) {
+			if (value instanceof File) {
+				console.log(`  ${key}:`, { name: value.name, size: value.size, type: value.type })
+			} else {
+				console.log(`  ${key}:`, value)
+			}
+		}
+		return await api.post(`/goal/${id}/complete`, formData)
 	}
 }
 

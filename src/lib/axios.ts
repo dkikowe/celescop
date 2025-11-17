@@ -38,19 +38,48 @@ api.interceptors.response.use(
 			}
 		}
 
+		// Подробное логирование для отладки
+		console.group('🔴 API Error')
+		console.error('URL:', error?.config?.url)
+		console.error('Method:', error?.config?.method)
+		console.error('Status:', error?.response?.status)
+		console.error('Response data:', error?.response?.data)
+		console.error('Full error:', error)
+		console.groupEnd()
+
 		// Показываем сообщение об ошибке
 		if (error?.response) {
 			const status = error.response.status
 			if (status !== 401 && status !== 403) {
-				const message = error.response.data?.message || 'Неизвестная ошибка'
-				toast.error(message)
+				// Пытаемся извлечь сообщение из разных возможных форматов ответа
+				let message = 'Неизвестная ошибка'
+				
+				if (typeof error.response.data === 'string') {
+					message = error.response.data
+				} else if (error.response.data?.message) {
+					message = error.response.data.message
+				} else if (error.response.data?.error) {
+					message = error.response.data.error
+				} else if (Array.isArray(error.response.data?.errors)) {
+					message = error.response.data.errors.join(', ')
+				}
+				
+				// Добавляем статус код для дополнительной информации
+				const displayMessage = status >= 500 
+					? `Ошибка сервера (${status}): ${message}`
+					: message
+				
+				console.error('Showing toast:', displayMessage)
+				toast.error(displayMessage)
 			}
 		} else if (error?.request) {
 			// Ошибка сети - запрос был отправлен, но ответа не получено
+			console.error('Network error - no response received')
 			toast.error('Ошибка сети. Проверьте интернет-соединение.')
 		} else {
 			// Ошибка при настройке запроса
-			toast.error('Случилась ошибка. Пожалуйста, перезагрузите страницу.')
+			console.error('Request setup error:', error?.message)
+			toast.error('Ошибка при отправке запроса: ' + (error?.message || 'неизвестная ошибка'))
 		}
 
 		// Важно: возвращаем rejected Promise, чтобы ошибка попала в catch блоки
