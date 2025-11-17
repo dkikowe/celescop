@@ -26,9 +26,18 @@ export function SettingsEditPhoto() {
 		try {
 			console.log('Selected file type:', selectedFile.type)
 			console.log('Selected file name:', selectedFile.name)
+			console.log('Selected file size:', selectedFile.size)
 
+			// Проверка размера файла
 			if (selectedFile.size > 5 * 1024 * 1024) {
-				toast.error('Файл очень большой, максимальный размер 5MB')
+				toast.error('Файл слишком большой. Максимальный размер: 5MB')
+				return
+			}
+
+			// Проверка типа файла
+			const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/heic', 'image/heif']
+			if (!validTypes.includes(selectedFile.type) && !selectedFile.name.match(/\.(jpg|jpeg|png|heic)$/i)) {
+				toast.error('Неподдерживаемый формат. Используйте JPG, PNG или HEIC')
 				return
 			}
 
@@ -52,6 +61,7 @@ export function SettingsEditPhoto() {
 			canvas.toBlob(async blob => {
 				if (!blob) {
 					toast.error('Ошибка обработки изображения')
+					setIsPending(false)
 					return
 				}
 
@@ -59,16 +69,18 @@ export function SettingsEditPhoto() {
 				formData.append('image', blob, 'avatar.png')
 
 				try {
+					console.log('Uploading photo, blob size:', blob.size)
 					const response = await userService.editUserPhoto(user!.id, formData)
-					toast.success('Успешно!')
+					console.log('Photo uploaded successfully')
+					toast.success('Фото успешно обновлено!')
 					useAuthStore.setState({ user: response.data })
-				} catch (error) {
+					closeDialog()
+				} catch (error: any) {
 					console.error('Error uploading photo:', error)
-					toast.error('Ошибка загрузки фото')
+					// Не показываем toast.error здесь, т.к. axios interceptor уже показал ошибку
 				} finally {
 					setIsPending(false)
 					setFile(null)
-					closeDialog()
 				}
 			}, 'image/png')
 		} catch (error) {

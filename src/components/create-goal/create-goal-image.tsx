@@ -35,23 +35,28 @@ export function CreateGoalImageField({
 						/>
 					</div>
 				)}
-				<Button
-					type='button'
-					onClick={() => document.getElementById('image')?.click()}
-				>
-					{currentImageUrl ? 'Изменить фото' : 'Загрузить'}
-				</Button>
-				<input
-					type='file'
-					id='image'
-					className='hidden'
-					onChange={e => {
-						setValue('image', e.target.files?.[0])
-						// Очищаем URL текущей фотографии при выборе нового файла
-						setCurrentImageUrl(null)
-					}}
-				/>
-				{watch('image') && <p className='mt-2'>{watch('image')?.name}</p>}
+			<Button
+				type='button'
+				onClick={() => document.getElementById('image')?.click()}
+			>
+				{currentImageUrl ? 'Изменить фото' : 'Загрузить'}
+			</Button>
+			<input
+				type='file'
+				id='image'
+				className='hidden'
+				accept='image/*,.png,.jpg,.jpeg,.heic'
+				onChange={e => {
+					const file = e.target.files?.[0]
+					if (file) {
+						console.log('Goal image selected:', file.name, 'size:', file.size, 'type:', file.type)
+					}
+					setValue('image', file)
+					// Очищаем URL текущей фотографии при выборе нового файла
+					setCurrentImageUrl(null)
+				}}
+			/>
+			{watch('image') && <p className='mt-2'>{watch('image')?.name}</p>}
 			</div>
 		</Block>
 	)

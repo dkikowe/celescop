@@ -60,6 +60,7 @@ export function HomeCompleteGoal({
         name="confirm-image"
         id="confirm-image"
         className="hidden"
+        accept="image/*,.png,.jpg,.jpeg,.heic"
         onChange={(e) => completeGoal(e.target.files?.[0])}
       />
       <AchievementPopup

@@ -11,16 +11,21 @@ export function useCreateGoal(cb?: () => void) {
 			const formData = new FormData()
 			formData.append('image', data.image)
 			formData.append('info', JSON.stringify(dataWithoutImage))
+			console.log('Creating goal with image:', data.image?.name, 'size:', data.image?.size)
             const res = data?.source === 'template'
                 ? await goalService.createGoalFromTemplate(formData)
                 : await goalService.createGoal(formData)
-			if (res?.status !== 200) throw new Error()
+			if (res?.status !== 200) throw new Error('Ошибка создания цели')
 			return res
 		},
 		onSuccess: () => {
-			toast.success('Успешно!')
+			toast.success('Цель успешно создана!')
 			cb?.()
 		},
+		onError: (error: any) => {
+			console.error('Error creating goal:', error)
+			// axios interceptor уже показал сообщение об ошибке
+		}
 	})
 }
 
@@ -60,21 +65,27 @@ export function useCompleteGoal(id: number) {
 	return useMutation({
 		mutationFn: async (image: File | undefined) => {
 			if (!image) {
-				toast.error('Выберите картинку')
-				return
+				toast.error('Выберите фото для подтверждения')
+				throw new Error('Фото не выбрано')
 			}
+
+			console.log('Completing goal with image:', image.name, 'size:', image.size, 'type:', image.type)
 
 			const formData = new FormData()
 			formData.append('image', image)
 
 			const res = await goalService.completeGoal(id, formData)
-			if (res?.status !== 200) throw new Error()
+			if (res?.status !== 200) throw new Error('Ошибка завершения цели')
 			return res
 		},
 		onSuccess: () => {
 			toast.success('Цель успешно выполнена!')
 			queryClient.invalidateQueries({ queryKey: ['get goals'] })
 		},
+		onError: (error: any) => {
+			console.error('Error completing goal:', error)
+			// axios interceptor уже показал сообщение об ошибке
+		}
 	})
 }
 

@@ -32,22 +32,28 @@ api.interceptors.response.use(
 				await authService.refresh()
 
 				return api.request(originalRequest)
-			} catch {
+			} catch (refreshError) {
 				toast('Случилась ошибка. Пожалуйста, перезагрузите страницу.')
+				return Promise.reject(refreshError)
 			}
 		}
 
-		if (error) {
-			const status = error?.response?.status
+		// Показываем сообщение об ошибке
+		if (error?.response) {
+			const status = error.response.status
 			if (status !== 401 && status !== 403) {
-				const message = error?.response?.data?.message || 'Неизвестная ошибка'
+				const message = error.response.data?.message || 'Неизвестная ошибка'
 				toast.error(message)
 			}
-		} else if (
-			error?.response?.status !== 401 &&
-			error?.response?.status !== 403
-		) {
+		} else if (error?.request) {
+			// Ошибка сети - запрос был отправлен, но ответа не получено
+			toast.error('Ошибка сети. Проверьте интернет-соединение.')
+		} else {
+			// Ошибка при настройке запроса
 			toast.error('Случилась ошибка. Пожалуйста, перезагрузите страницу.')
 		}
+
+		// Важно: возвращаем rejected Promise, чтобы ошибка попала в catch блоки
+		return Promise.reject(error)
 	}
 )
